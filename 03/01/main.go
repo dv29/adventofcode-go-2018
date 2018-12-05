@@ -56,11 +56,16 @@ func main() {
 	regex := regexp.MustCompile(`#(?P<id>\d+) @ (?P<x>\d+),(?P<y>\d+): (?P<width>\d+)x(?P<height>\d+)`)
 	var fabric [FABRIC_SIZE][FABRIC_SIZE]int
 	count := 0
+	var claims []ClaimRectangle
 
 	for scanner.Scan() {
 		str := scanner.Text()
 		check(err)
-		cr := mapToClaimRectangle(str, regex)
+		claims = append(claims, mapToClaimRectangle(str, regex))
+	}
+
+	// part 1
+	for _, cr := range claims {
 		for w := uint(0); w < cr.width; w++ {
 			for h := uint(0); h < cr.height; h++ {
 				val := fabric[cr.x+w][cr.y+h]
@@ -71,6 +76,23 @@ func main() {
 					count++
 				}
 			}
+		}
+	}
+
+	// part 2
+	for _, cr := range claims {
+		isUnique := true
+		for w := uint(0); w < cr.width; w++ {
+			for h := uint(0); h < cr.height; h++ {
+				val := fabric[cr.x+w][cr.y+h]
+				if val != int(cr.id) {
+					isUnique = false
+				}
+			}
+		}
+
+		if isUnique {
+			fmt.Printf("uinque: %d\n", cr.id)
 		}
 	}
 
