@@ -52,12 +52,11 @@ func main() {
 	check(err)
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
 	regex := regexp.MustCompile(`#(?P<id>\d+) @ (?P<x>\d+),(?P<y>\d+): (?P<width>\d+)x(?P<height>\d+)`)
 	var fabric [FABRIC_SIZE][FABRIC_SIZE]int
-	count := 0
 	var claims []ClaimRectangle
 
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		str := scanner.Text()
 		check(err)
@@ -65,6 +64,7 @@ func main() {
 	}
 
 	// part 1
+	count := 0
 	for _, cr := range claims {
 		for w := uint(0); w < cr.width; w++ {
 			for h := uint(0); h < cr.height; h++ {
@@ -78,6 +78,7 @@ func main() {
 			}
 		}
 	}
+	fmt.Printf("count: %d\n", count)
 
 	// part 2
 	for _, cr := range claims {
@@ -102,8 +103,6 @@ func main() {
 	// 	}
 	// 	fmt.Printf("\n")
 	// }
-
-	fmt.Printf("count: %d\n", count)
 
 	fmt.Println("")
 	if err := scanner.Err(); err != nil {
