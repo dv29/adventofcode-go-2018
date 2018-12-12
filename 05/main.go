@@ -3,9 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
+	// "io"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ func isLower(char string) bool {
 	return s > 96 && s < (96+27)
 }
 
-func buildString(str *string, char string) {
+func react(str *string, char string) {
 	*str += char
 	for i := len(*str); i > 1; i-- {
 		lastChar := string((*str)[i-1])
@@ -39,27 +40,36 @@ func buildString(str *string, char string) {
 	}
 }
 
+func reactMapper(str string, cb func(*string, string)) int {
+	var resultString string
+	for _, s := range str {
+		react(&resultString, string(s))
+	}
+	return len(resultString)
+}
+
+func removeUnitReact(str string) {
+	max := 0
+	for i := 0; i < 26; i++ {
+		r := regexp.MustCompile(fmt.Sprintf("(%s|%s)", string(i+65), strings.ToLower(string(i+65))))
+		s := r.ReplaceAllString(str, "")
+		x := reactMapper(s, react)
+		if max > x || max == 0 {
+			max = x
+		}
+	}
+	fmt.Printf("%d\n", max)
+}
+
 func main() {
 	file, err := os.Open("./input")
 	check(err)
 	defer file.Close()
 
-	scanner := bufio.NewReader(file)
-	var resultString string
-
-	for {
-		if c, _, err := scanner.ReadRune(); err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				log.Fatal(err)
-			}
-		} else {
-			// fmt.Printf("%s\n", string(c))
-			buildString(&resultString, string(c))
-		}
+	scanner := bufio.NewScanner(file)
+	isString := scanner.Scan()
+	if isString {
+		str := scanner.Text()
+		removeUnitReact(str[:len(str)])
 	}
-
-	// reducing by 1 for \n
-	fmt.Printf("%s\t%d\n", resultString, len(resultString)-1)
 }
