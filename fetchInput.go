@@ -37,6 +37,8 @@ func main() {
 	check(err)
 
 	// create file to write
+	err = os.MkdirAll(fmt.Sprintf("%02d/", uint(day)), 0755)
+	check(err)
 	file, err := os.Create(fmt.Sprintf("%02d/input", uint(day)))
 	check(err)
 	defer file.Close()
