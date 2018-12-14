@@ -70,28 +70,48 @@ func (c Coords) GetBounds() (maxX, maxY int) {
 	return
 }
 
-func (c Coord) GetDistance(cb Coord) {
-	return math.Abs(c.x-cb.x) + math.Abs(c.y-cb.y)
+func (c Coord) GetDistance(cb Coord) float64 {
+	return math.Abs(float64(c.x-cb.x)) + math.Abs(float64(c.y-cb.y))
 }
 
-func (grid [][]int) PopulateDistanceMatrix(coords Coords) {
-	for x, _ := range grid {
-		for y, _ := range grid[x] {
-			if grid[x][y] == 0 {
-				min := struct {
-					dist  float64
-					coord Coord
-				}{
-					(Coord{x, y}).GetDistance(c),
-					coords[0],
+type MinCoord struct {
+	dist       float64
+	coordIndex int
+}
+
+func (coords Coords) PopulateDistanceMatrix(grid *[][]int) {
+	for x, _ := range *grid {
+		for y, _ := range (*grid)[x] {
+			if (*grid)[x][y] == 0 {
+				min := MinCoord{
+					(Coord{x, y}).GetDistance(coords[0]),
+					0,
 				}
-				for coord := range coords {
+				for index, coord := range coords {
 					dist := (Coord{x, y}).GetDistance(coord)
 					if min.dist < dist {
-						min = struct{dist, coord}
+						min = MinCoord{
+							dist,
+							index,
+						}
+					} else if min.dist == dist {
+						(*grid)[x][y] = -1
 					}
 				}
+				(*grid)[x][y] = min.coordIndex
 			}
+		}
+	}
+}
+
+func PopulateImage(grid [][]int, dc *gg.Context) {
+	for x, _ := range grid {
+		for y, _ := range grid[x] {
+			mx, my := float64(x), float64(y)
+			dc.DrawRectangle(mx*multiplier, my*multiplier, multiplier, multiplier)
+			ci := float64(grid[x][y])
+			dc.SetRGB(ci, 0, 0)
+			dc.Fill()
 		}
 	}
 }
@@ -130,6 +150,9 @@ func main() {
 	dc.SetRGB(255, 255, 255)
 	dc.Clear()
 	coords.ImagePlotter(dc)
-	dc.SavePNG("out.png")
 
+	coords.PopulateDistanceMatrix(&grid)
+	PopulateImage(grid, dc)
+	fmt.Printf("%v\n", grid)
+	dc.SavePNG("out.png")
 }
